@@ -12,6 +12,7 @@ class MyChannel: ChannelDelegate, ObservableObject {
     @Published var chatlog: [ChannelResultModel] = []
     @Published var myChatlog: [ChatResultModel] = []
     @Published var translateUserClientKeyMap: [String: String] = [:]
+    @Published var blockedUser: [String] = []
     
     private func addMyChatlog(_ channelResultModel: ChannelResultModel) {
         var temp = channelResultModel
@@ -23,6 +24,16 @@ class MyChannel: ChannelDelegate, ObservableObject {
             break
         }
         
+        // 블록 된 유저는 채팅 로그에 추가하지 않음
+        if (blockedUser.contains(where: { user in
+            guard let clientKey = temp.body["clientKey"] as? String else {
+                return false
+            }
+            return clientKey == user
+        })) {
+            return
+        }
+
         myChatlog.last?.nextDt = temp.messageDt
         myChatlog.last?.nextClientKey = temp.body["clientKey"] as? String
         
@@ -205,6 +216,7 @@ class MyChannel: ChannelDelegate, ObservableObject {
         clients.removeAll()
         chatlog.removeAll()
         myChatlog.removeAll()
+        blockedUser.removeAll()
     }
     
     private func addNotice(message: String) {
